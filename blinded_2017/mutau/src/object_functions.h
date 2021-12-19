@@ -830,10 +830,10 @@ double mutau_analyzer::getScaleFactors(  double mupt, double taupt, double mueta
   double mu_crosstrg = w->function("m_trg_20_ic_ratio")->getVal();
   double tau_crossttrg = w->function("t_trg_ic_deeptau_medium_mvadm_mutau_ratio")->getVal();
   double t_deepid = w->function("t_deeptauid_mvadm_medium")->getVal();
-  double zptmass_weight = 1.0;
-  if(found_DYjet_sample)
-    zptmass_weight= get_zptmass_weight();
-  if(zptmass_weight>1) zptmass_weight = 1.0;
+  //double zptmass_weight = 1.0;
+  /* if(found_DYjet_sample) */
+  /*   zptmass_weight= get_zptmass_weight(); */
+  //if(zptmass_weight>1) zptmass_weight = 1.0;
 
   double top_pt_weight=1.0;
   if(found_TTbar_sample){
@@ -1331,10 +1331,14 @@ void mutau_analyzer::tauIDunc( string histNumber , int eleIndex, int tauIndex, b
 void mutau_analyzer::dyShape( string histNumber , int muIndex, int tauIndex, bool isFakeBkg, float event_weight){
   if(selected_systematic!="dyShape")
     return;
+  double zptweight = zptmass_weight;
+  double weight_up = (zptweight+0.10*(zptweight-1))/zptweight;
+  double weight_dn = (zptweight-0.10*(zptweight-1))/zptweight;
+
   if(unc_shift == "up")
-    fillHist(histNumber+"_CMS_htt_dyShape_up", MuIndex, TauIndex, true, event_weight * 1.1);
+    fillHist(histNumber+"_CMS_htt_dyShape_up", MuIndex, TauIndex, true, event_weight * weight_up);
   else if (unc_shift == "down")
-    fillHist(histNumber+"_CMS_htt_dyShape_down", MuIndex, TauIndex, true, event_weight * 0.9);
+    fillHist(histNumber+"_CMS_htt_dyShape_down", MuIndex, TauIndex, true, event_weight * weight_dn);
 }
 void mutau_analyzer::ttbarShape( string histNumber , int muIndex, int tauIndex, bool isFakeBkg, float event_weight){
   if(selected_systematic!="ttbarShape")

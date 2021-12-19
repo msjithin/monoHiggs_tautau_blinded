@@ -854,10 +854,10 @@ double etau_analyzer::getScaleFactors(  double elept, double taupt, double eleet
   double e_trg24_sf=w->function("e_trg_24_ic_ratio")->getVal();
   double t_trg_sf=w->function("t_trg_ic_deeptau_medium_mvadm_etau_ratio")->getVal();
   double t_deepid_tightvsele_sf=w->function("t_deeptauid_mvadm_medium_tightvsele")->getVal();
-  double zptmass_weight = 1.0;
-  if(found_DYjet_sample)
-    zptmass_weight= get_zptmass_weight();
-  
+  /* double zptmass_weight = 1.0; */
+  /* if(found_DYjet_sample) */
+  /*   zptmass_weight= get_zptmass_weight(); */
+  //cout<<"in scale factor "<< zptmass_weight<<endl;
   double top_pt_weight=1.0;
   if(found_TTbar_sample){
     //int t_index = get_t_Cand(); int tbar_index = get_tbar_Cand();
@@ -1343,11 +1343,14 @@ void etau_analyzer::tauIDunc( string histNumber , int eleIndex, int tauIndex, bo
 void etau_analyzer::dyShape( string histNumber , int eleIndex, int tauIndex, bool isFakeBkg, float event_weight){
   if(selected_systematic!="dyShape")
     return;
-
+  double zptweight = zptmass_weight;
+  double weight_up = (zptweight+0.10*(zptweight-1))/zptweight;
+  double weight_dn = (zptweight-0.10*(zptweight-1))/zptweight;
+  
   if(unc_shift == "up")
-    fillHist(histNumber+"_CMS_htt_dyShape_up", EleIndex, TauIndex, true, event_weight * 1.1);
+    fillHist(histNumber+"_CMS_htt_dyShape_up", EleIndex, TauIndex, true, event_weight*weight_up);
   else if (unc_shift == "down")
-    fillHist(histNumber+"_CMS_htt_dyShape_down", EleIndex, TauIndex, true, event_weight * 0.9);
+    fillHist(histNumber+"_CMS_htt_dyShape_down", EleIndex, TauIndex, true, event_weight*weight_dn);
 }
 void etau_analyzer::ttbarShape( string histNumber , int eleIndex, int tauIndex, bool isFakeBkg, float event_weight){
   if(selected_systematic!="ttbarShape")
@@ -1513,6 +1516,10 @@ TLorentzVector etau_analyzer::MetRecoilCorrections(int eleIndex, int tauIndex, T
   
 
   mymet.SetPxPyPzE(pfmetcorr_ex,pfmetcorr_ey,0,sqrt(pfmetcorr_ex*pfmetcorr_ex + pfmetcorr_ey*pfmetcorr_ey));
+  /* if(selected_systematic == "nominal" && make_met_plot==true){ */
+  /*   //cout<<"filling met nominal"<<endl; */
+  /*   plotFill("met_nominal", mymet.Pt(), 20, 0, 200,  1.0); */
+  /* }  */
   return mymet;
 }
 
