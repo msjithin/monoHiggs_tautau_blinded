@@ -1,8 +1,8 @@
-TLorentzVector etau_analyzer::metSysUnc(string uncType, TLorentzVector event_metP4){
+TLorentzVector etau_analyzer::metSysUnc(string uncType, TLorentzVector eventMetP4){
   
-  //TLorentzVector mymetvector = event_metP4;
-  TLorentzVector mymetvector;
-  mymetvector.SetPtEtaPhiE(pfMET,0 ,pfMETPhi ,pfMET);
+  TLorentzVector mymetvector = eventMetP4;
+  //TLorentzVector mymetvector;
+  //mymetvector.SetPtEtaPhiE(pfMET,0 ,pfMETPhi ,pfMET);
   TLorentzVector BosonP4, nuP4, nuP4tmp;
   TLorentzVector nu1P4, gentau1P4;
   TLorentzVector nu2P4, gentau2P4;
@@ -34,11 +34,11 @@ TLorentzVector etau_analyzer::metSysUnc(string uncType, TLorentzVector event_met
 	}
     }
   // apply recoil corrections on event-by-event basis (Type I PF MET)
-  float pfmet=pfMET; float pfmetPhi=pfMETPhi;
-  float pfmetcorr_ex_responseUp=pfmet*cos(pfmetPhi);     float pfmetcorr_ey_responseUp=pfmet*sin(pfmetPhi);
-  float pfmetcorr_ex_responseDown=pfmet*cos(pfmetPhi);   float pfmetcorr_ey_responseDown=pfmet*sin(pfmetPhi);
-  float pfmetcorr_ex_resolutionUp=pfmet*cos(pfmetPhi);   float pfmetcorr_ey_resolutionUp=pfmet*sin(pfmetPhi);
-  float pfmetcorr_ex_resolutionDown=pfmet*cos(pfmetPhi); float pfmetcorr_ey_resolutionDown=pfmet*sin(pfmetPhi);
+  float _pfmet=mymetvector.Pt(); float _pfmetPhi=mymetvector.Phi();
+  float pfmetcorr_ex_responseUp=_pfmet*cos(_pfmetPhi);     float pfmetcorr_ey_responseUp=_pfmet*sin(_pfmetPhi);
+  float pfmetcorr_ex_responseDown=_pfmet*cos(_pfmetPhi);   float pfmetcorr_ey_responseDown=_pfmet*sin(_pfmetPhi);
+  float pfmetcorr_ex_resolutionUp=_pfmet*cos(_pfmetPhi);   float pfmetcorr_ey_resolutionUp=_pfmet*sin(_pfmetPhi);
+  float pfmetcorr_ex_resolutionDown=_pfmet*cos(_pfmetPhi); float pfmetcorr_ey_resolutionDown=_pfmet*sin(_pfmetPhi);
   float genpX = BosonP4.Px();
   float genpY = BosonP4.Py();
   float vispX = visGenP4.Px();
@@ -97,34 +97,64 @@ TLorentzVector etau_analyzer::metSysUnc(string uncType, TLorentzVector event_met
   if (unc_shift == "up" && uncType=="response")
     {
       mymet_responseUp.SetPxPyPzE(pfmetcorr_ex_responseUp,pfmetcorr_ey_responseUp,0,sqrt(pfmetcorr_ex_responseUp*pfmetcorr_ex_responseUp+pfmetcorr_ey_responseUp*pfmetcorr_ey_responseUp));
+      //if(make_met_plot==true) { cout<<"filling met_response_up"<<endl; plotFill("met_response_up", mymet_responseUp.Pt(), 20, 0, 200,  1.0);}
       return mymet_responseUp;
     }
   else if (unc_shift == "up" && uncType=="resolution")
     {
       mymet_resolutionUp.SetPxPyPzE(pfmetcorr_ex_resolutionUp,pfmetcorr_ey_resolutionUp,0,sqrt(pfmetcorr_ex_resolutionUp*pfmetcorr_ex_resolutionUp+pfmetcorr_ey_resolutionUp*pfmetcorr_ey_resolutionUp));
+      //if(make_met_plot==true) { cout<<"filling met_resolution_up"<<endl; plotFill("met_resolution_up", mymet_resolutionUp.Pt(), 20, 0, 200,  1.0);}
       return mymet_resolutionUp;
     }
   else if (unc_shift == "down" && uncType=="response")
     {
       mymet_responseDown.SetPxPyPzE(pfmetcorr_ex_responseDown,pfmetcorr_ey_responseDown,0,sqrt(pfmetcorr_ex_responseDown*pfmetcorr_ex_responseDown+pfmetcorr_ey_responseDown*pfmetcorr_ey_responseDown));
+      //if(make_met_plot==true) { cout<<"filling met_response_down"<<endl; plotFill("met_response_down", mymet_responseDown.Pt(), 20, 0, 200,  1.0);}
       return mymet_responseDown;
     }
   else if (unc_shift == "down" && uncType=="resolution")
     {
       mymet_resolutionDown.SetPxPyPzE(pfmetcorr_ex_resolutionDown,pfmetcorr_ey_resolutionDown,0,sqrt(pfmetcorr_ex_resolutionDown*pfmetcorr_ex_resolutionDown+pfmetcorr_ey_resolutionDown*pfmetcorr_ey_resolutionDown));
+      //if(make_met_plot==true) { cout<<"filling met_resolution_down"<<endl; plotFill("met_resolution_down", mymet_resolutionDown.Pt(), 20, 0, 200,  1.0);}
       return mymet_resolutionDown;
     }
   
 }
-TLorentzVector etau_analyzer::metClusteredUnc( ){
+TLorentzVector etau_analyzer::metClusteredUnc(TLorentzVector nominal_met ){
   TLorentzVector new_metP4;
-  double met_up_to_use = abs(pfMET-pfMET_T1UESUp) + pfMET;
-  double met_do_to_use = pfMET - abs(pfMET-pfMET_T1UESDo) ;
-  if(unc_shift=="up")
-    new_metP4.SetPtEtaPhiE( met_up_to_use, 0, pfMETPhi_T1UESUp, met_up_to_use);
+  TLorentzVector raw_TauP4;
+  TLorentzVector uncorrectedMetPlusTau; TLorentzVector met_T1UES;
+  TLorentzVector raw_tau = applyTauESCorrections(my_tauP4, TauIndex, 0);
+  raw_TauP4.SetPtEtaPhiE(tau_Pt->at(TauIndex),tau_Eta->at(TauIndex),
+			 tau_Phi->at(TauIndex), tau_Energy->at(TauIndex)
+			 );                                                     //// raw tau
+  
+  if(unc_shift=="up"){
+    met_T1UES.SetPtEtaPhiE(pfMET_T1UESUp ,0, pfMETPhi_T1UESUp, pfMET_T1UESUp); //// raw met
+    uncorrectedMetPlusTau = met_T1UES + raw_TauP4;
+    TLorentzVector corrected_tau = applyTauESCorrections(raw_TauP4, TauIndex, 0);
+    met_T1UES = uncorrectedMetPlusTau - corrected_tau;
+    met_T1UES = MetRecoilCorrections(EleIndex, TauIndex, met_T1UES);
+    
+    double up_percent = abs(met_T1UES.Pt() - nominal_met.Pt())/nominal_met.Pt();
+    if (up_percent>0.2) { up_percent= 0.2; met_T1UES = nominal_met * 1.2;}
+    //cout<<"up_percent          "<< up_percent <<endl;   
+    new_metP4 = met_T1UES;
+  }
   else if(unc_shift=="down")
-    new_metP4.SetPtEtaPhiE( met_do_to_use, 0, pfMETPhi_T1UESDo, met_do_to_use);
+    {
+      met_T1UES.SetPtEtaPhiE(pfMET_T1UESDo ,0, pfMETPhi_T1UESDo, pfMET_T1UESDo); //// raw met
+      uncorrectedMetPlusTau = met_T1UES + raw_TauP4;
+      TLorentzVector corrected_tau = applyTauESCorrections(raw_TauP4, TauIndex, 0);
+      met_T1UES = uncorrectedMetPlusTau - corrected_tau;
+      met_T1UES = MetRecoilCorrections(EleIndex, TauIndex, met_T1UES);
+
+      double dn_percent = abs(met_T1UES.Pt() - nominal_met.Pt())/nominal_met.Pt();
+      if (dn_percent>0.2) {dn_percent= 0.2;  met_T1UES = nominal_met * 0.8;}
+      new_metP4 = met_T1UES; 
+      //cout<<"                                dn_percent "<< dn_percent <<endl;
+    }
   else 
-    new_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
+    new_metP4 = nominal_met;
   return new_metP4;
 }

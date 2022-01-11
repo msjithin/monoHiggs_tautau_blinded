@@ -2,7 +2,7 @@
 void etau_analyzer::selections(float weight, int shift, string uncObject)
 {
   check_unc=false; // set true for printing unc pt, values
-
+  make_met_plot = false;
   double event_weight = weight;
   TLorentzVector metP4, event_met_p4;
   if (shift > 0 ) unc_shift = "up";
@@ -135,7 +135,7 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
       if( tauCand.size()>0  ) 
 	{
 	  nGoodTauPassed_dyll+=event_weight;
-	  
+
 	  setMyEleTau(eleCand[0], tauCand[0], metP4, shift); // from here we can use my_eleP4, my_tauP4, my_metP4, etc
 	  //cout<<"Line number "<<__LINE__<<endl;
 	  if ( TriggerSelection(my_eleP4, my_tauP4) )
@@ -236,7 +236,7 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 	    }
 	}
     }
-
+  
   //cout<<"Line number "<<__LINE__<<endl;
   if(debug)cout<<"signal region -  isolated begin L523"<<endl;       
   
@@ -249,21 +249,28 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
   //eleCand.clear();  tauCand.clear();
   eleCand = event_ele;
   tauCand = event_tau;
-  metP4 = event_met_p4;
+  //metP4 = event_met_p4;
+  metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
   //eleCand = getEleCand(25.0,2.1, shift);  ///// ele selected 
   //cout<<"Line number "<<__LINE__<<endl;
   if( eleCand.size() >0 ) 
     { 
       nGoodMuonPassed+=event_weight;
       if(debug)cout<<"this worked Line 526"<<endl;
+      /* if(selected_systematic == "nominal") */
+      /* 	make_met_plots("a3"); */
       
       //makeTestPlot("c", 0,0,0,event_weight);
       //tauCand = getTauCand(30.0,2.3, shift);
       if( tauCand.size() >0 )
 	{
 	  nGoodTauPassed+=event_weight;
-	  
+	  /* if(selected_systematic == "nominal") */
+	  /*   make_met_plots("a4"); */
+
+	  make_met_plot = true;
 	  setMyEleTau(eleCand[0], tauCand[0], metP4, shift);
+	  make_met_plot = false;
 	  if(shift ==0 )
 	    {
 	      plotFill("pfmet_1", pfMET , 20, 0, 200,  event_weight);
@@ -271,11 +278,19 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 	      plotFill("pfmetJESdo_1", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 	    }
 
+
+	  // make_met_shapes_plots("1", event_weight);
+	  ////////////
+	  /* stage = "1"; */
+	  /* if (unc_shift == "nominal" ) save_nom(); */
+	  /* if(shift ==0 ) fillHist("1", EleIndex, TauIndex, false, event_weight); */
+	  /* else           fillUncPlots("1", EleIndex, TauIndex, false, event_weight, shift); */
+	  ////////////
 	  if ( TriggerSelection(my_eleP4, my_tauP4) )
 	    {
 	      if(Ztt_selector) 
 		{
-			   		   
+		  // make_met_shapes_plots("2", event_weight);
 		  if (  eleCharge->at(EleIndex) * tau_Charge->at(TauIndex) < 0 
 			&& (if_DY_Genmatching(EleIndex, TauIndex)==1 ||  if_DY_Genmatching(EleIndex, TauIndex)==3) ) 
 		    {
@@ -289,6 +304,12 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 			  plotFill("pfmetJESdo_2", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 			}
 		      //makeTestPlot("e", 0,0,0,event_weight);
+		      /////////////
+		      /* stage = "2"; */
+		      /* if (unc_shift == "nominal" ) save_nom(); */
+		      /* if(shift ==0 ) fillHist("2", EleIndex, TauIndex, false, event_weight); */
+		      /* else           fillUncPlots("2", EleIndex, TauIndex, false, event_weight, shift); */
+		      /////////////
 		      if ( MatchTriggerFilter(EleIndex, TauIndex) )
 			{
 			  if(debug)cout<<"this worked Line 534"<<endl;
@@ -313,6 +334,13 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 			      plotFill("pfmetJESup_3", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 			      plotFill("pfmetJESdo_3", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 			    }
+			  // make_met_shapes_plots("3", event_weight);
+			  ////////////////
+			  /* stage = "3"; */
+			  /* if (unc_shift == "nominal" ) save_nom(); */
+			  /* if(shift ==0 ) fillHist("3", EleIndex, TauIndex, false, event_weight); */
+			  /* else           fillUncPlots("3", EleIndex, TauIndex, false, event_weight, shift); */
+			  //////////
 			  if( thirdLeptonVeto(EleIndex , TauIndex)  )
 			    {
 			      nPassedThirdLepVeto+=event_weight;
@@ -328,18 +356,28 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 				      plotFill("pfmetJESup_4", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 				      plotFill("pfmetJESdo_4", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 				    }
+				  // make_met_shapes_plots("4", event_weight);
+				  ///////////////////
+				  /* stage = "4"; */
+				  /* if (unc_shift == "nominal" ) save_nom(); */
+				  /* if(shift ==0 ) fillHist("4", EleIndex, TauIndex, false, event_weight); */
+				  /* else           fillUncPlots("4", EleIndex, TauIndex, false, event_weight, shift); */
+				  /////////////////
 				  double deltaR = my_eleP4.DeltaR(my_tauP4);
 				  if(deltaR > 0.5 )
 				    {
+				      /* if(selected_systematic == "nominal") */
+				      /* 	make_met_plots("a5"); */
+
 				      nDeltaRPassed+=event_weight;
 				      if(is_MC==false)event_weight=1.0;
 				      if(debug)cout<<"this worked Line 558"<<endl;
-				      printP4values(" "+selected_systematic+"  "+unc_shift);
+				      //printP4values(" "+selected_systematic+"  "+unc_shift);
 				      stage = "5";
 				      if (unc_shift == "nominal" ) save_nom();
 				      if(shift ==0 ) fillHist("5", EleIndex, TauIndex, false, event_weight);
 				      else           fillUncPlots("5", EleIndex, TauIndex, false, event_weight, shift);
-				      
+				      // make_met_shapes_plots("5", event_weight);
 				       if(shift ==0 )
 					{
 					  plotFill("pfmet_5", pfMET , 20, 0, 200,  event_weight);
@@ -371,7 +409,10 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 						      plotFill("pfmetJESup_9", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 						      plotFill("pfmetJESdo_9", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
 						    }
-
+						  /* if(selected_systematic == "nominal") */
+						  /*   make_met_plots("a9"); */
+							  
+						  // make_met_shapes_plots("9", event_weight);
 						  stage = "9";
 						  if (unc_shift == "nominal" ) save_nom();
 						  if(shift ==0 ) fillHist("9", EleIndex, TauIndex, false, event_weight);

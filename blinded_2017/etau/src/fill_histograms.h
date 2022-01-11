@@ -1,6 +1,23 @@
 void etau_analyzer::fillHist( string histNumber , int eleIndex, int tauIndex, bool isFakeBkg, float event_weight){
   string hNumber = histNumber;
-  
+
+  /* TLorentzVector corrected_met; */
+  /* corrected_met.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET); */
+  /* corrected_met = MetRecoilCorrections(EleIndex, TauIndex, corrected_met); */
+  /* if(unc_shift == "up" && selected_systematic=="response") */
+  /*   my_metP4 =  metSysUnc("response", corrected_met); */
+  /* if(unc_shift == "down" && selected_systematic=="response") */
+  /*   my_metP4 = metSysUnc("response", corrected_met); */
+  /* if (unc_shift == "up" && selected_systematic=="resolution") */
+  /*   my_metP4 = metSysUnc("resolution", corrected_met); */
+  /* if (unc_shift == "down" && selected_systematic=="resolution") */
+  /*   my_metP4 = metSysUnc("resolution", corrected_met); */
+  /* /\* if (unc_shift == "nominal") *\/ */
+  /* /\*   my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET); *\/ */
+  /*   //my_metP4=MetRecoilCorrections(EleIndex, TauIndex, tmp_met); */
+  /* if(is_MC==false) */
+  /*   my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET); */
+    
   //plotFill("elePt_"+hNumber,  my_eleP4.Pt() , 38 , 24 , 100,  event_weight);
   plotFill("elePt_"+hNumber,  my_eleP4.Pt() , 10 , 0 , 100,  event_weight);  /// binning same as 2016 AN
   plotFill("eleEta_"+hNumber, my_eleP4.Eta(), 25, -2.5, 2.5,  event_weight);

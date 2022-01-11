@@ -875,7 +875,8 @@ double etau_analyzer::getScaleFactors(  double elept, double taupt, double eleet
     
   sf_htt_workspace=  e_trk_sf * e_idiso_sf *  e_trg24_sf * e_trg_sf * t_trg_sf * zptmass_weight;
   rv_sf =  sf_tauidSF_m  *  sf_htt_workspace * weight_btagSF * top_pt_weight * higgPt_weight * sf_fakeEle;
-  
+  /* printTabSeparated("____________ in rv_sf , zptmass_weight = ", zptmass_weight); */
+  /* printTabSeparated(" "); */
 
   //rv_sf = rv_sf * ElectronIDIso.get_ScaleFactor(elept , eleeta);
   if(elept<28.0)
@@ -1344,8 +1345,22 @@ void etau_analyzer::dyShape( string histNumber , int eleIndex, int tauIndex, boo
   if(selected_systematic!="dyShape")
     return;
   double zptweight = zptmass_weight;
-  double weight_up = (zptweight+0.10*(zptweight-1))/zptweight;
-  double weight_dn = (zptweight-0.10*(zptweight-1))/zptweight;
+  double weight_up = (zptweight+0.10*abs(zptweight-1));
+  double weight_dn = (zptweight-0.10*abs(zptweight-1));
+  /* double weight_up = zptweight * 1.1; */
+  /* double weight_dn = zptweight * 0.9; */
+  /* if(previous_event_number != current_event_number){ */
+    
+  /*   printTabSeparated("-------------event:",current_event_number,"----------------------------------"); */
+  /*   printTabSeparated("zptweight", zptweight, "weight_up", weight_up, "weight_dn", weight_dn); */
+  /*   printTabSeparated("percent change  up", 100*abs(zptweight-weight_up)/zptweight , " dn " , 100*abs(zptweight-weight_dn)/zptweight); */
+  /*   weight_up = weight_up/zptweight; */
+  /*   weight_dn = weight_dn/zptweight; */
+  /*   printTabSeparated("event_weight", event_weight, "event_weight up" ,event_weight*weight_up , "event_weight dn ", event_weight*weight_dn); */
+  /*   printTabSeparated("percent change  up", 100*abs(event_weight - event_weight*weight_dn)/event_weight , " dn " , 100*abs(event_weight - event_weight*weight_dn)/event_weight); */
+  /*   printTabSeparated(" ", "\n"); */
+  /* } */
+
   
   if(unc_shift == "up")
     fillHist(histNumber+"_CMS_htt_dyShape_up", EleIndex, TauIndex, true, event_weight*weight_up);
@@ -1536,7 +1551,8 @@ TLorentzVector etau_analyzer::applyTauESCorrections(TLorentzVector tauP4, int ta
 
   if (selected_systematic != "tauES")
     return tauP4Corr;
-
+  if(shift==0)
+    return tauP4Corr;
   float pt_low  = 34;
   float pt_high = 170;
   int taudm = tau_DecayMode->at(tauIndex);

@@ -169,6 +169,7 @@ void etau_analyzer::Loop(Long64_t maxEvents, int reportEvery, string SampleName)
 
   for (Long64_t jentry=0; jentry<nentriesToCheck;jentry++)
     {
+      current_event_number = jentry;
       eleCand.clear();
       tauCand.clear();
       aisrtauCand.clear();
@@ -188,7 +189,7 @@ void etau_analyzer::Loop(Long64_t maxEvents, int reportEvery, string SampleName)
       double event_weight=1.0;
       double weight=1.0;
       applySf = 1.0;
-       
+      
       double pileup_sf = 1.0;
       passSingleTriggerPaths=false;
       passCrossTrigger=false;
@@ -198,6 +199,12 @@ void etau_analyzer::Loop(Long64_t maxEvents, int reportEvery, string SampleName)
       numberOfEvents+=weight;
       if(is_MC) weight=inspected_event_weight;
       else weight=1.0;
+     
+
+      //make_met_plots("a1");
+
+
+
       if(is_MC)
 	pileup_sf = h_pileup->GetBinContent(h_pileup->GetXaxis()->FindBin(puTrue->at(0)));
       weight = weight*pileup_sf;
@@ -227,6 +234,9 @@ void etau_analyzer::Loop(Long64_t maxEvents, int reportEvery, string SampleName)
       
       if(metFilters==0 && ( passSingleTriggerPaths || passCrossTrigger ))
 	{
+
+	  //make_met_plots("a2");
+
 	  nSingleTrgPassed+=event_weight;
 	  //if(check_unc)cout<<"Preparing NOMINAL"<<endl;
 	  orginal_jetPt.clear();
@@ -238,7 +248,7 @@ void etau_analyzer::Loop(Long64_t maxEvents, int reportEvery, string SampleName)
 	  selections(event_weight,  1, "jetFakes");
 	  selections(event_weight,  -1, "jetFakes");
 	  if(is_MC){
-	    /// UP 
+	    // /// UP 
 	    selections(event_weight,  1, "electronES"); // this is for Up
 	    selections(event_weight,  1, "tauES");
 	    selections(event_weight,  1, "JES");
@@ -273,6 +283,8 @@ void etau_analyzer::Loop(Long64_t maxEvents, int reportEvery, string SampleName)
 	    selections(event_weight,  -1, "ttbarShape");
 	  }
 	}
+
+      previous_event_number = current_event_number;
       report_test = nentriesToCheck/20;
       while (report_test>10)
 	{
