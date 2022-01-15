@@ -120,41 +120,59 @@ TLorentzVector etau_analyzer::metSysUnc(string uncType, TLorentzVector eventMetP
     }
   
 }
-TLorentzVector etau_analyzer::metClusteredUnc(TLorentzVector nominal_met ){
-  TLorentzVector new_metP4;
-  TLorentzVector raw_TauP4;
-  TLorentzVector uncorrectedMetPlusTau; TLorentzVector met_T1UES;
-  TLorentzVector raw_tau = applyTauESCorrections(my_tauP4, TauIndex, 0);
-  raw_TauP4.SetPtEtaPhiE(tau_Pt->at(TauIndex),tau_Eta->at(TauIndex),
-			 tau_Phi->at(TauIndex), tau_Energy->at(TauIndex)
-			 );                                                     //// raw tau
+/* TLorentzVector etau_analyzer::metClusteredUnc(TLorentzVector nominal_met ){ */
+/*   TLorentzVector new_metP4; */
+/*   TLorentzVector raw_TauP4; */
+/*   TLorentzVector uncorrectedMetPlusTau; TLorentzVector met_T1UES; */
+/*   TLorentzVector raw_tau = applyTauESCorrections(my_tauP4, TauIndex, 0); */
+/*   raw_TauP4.SetPtEtaPhiE(tau_Pt->at(TauIndex),tau_Eta->at(TauIndex), */
+/* 			 tau_Phi->at(TauIndex), tau_Energy->at(TauIndex) */
+/* 			 );                                                     //// raw tau */
   
-  if(unc_shift=="up"){
-    met_T1UES.SetPtEtaPhiE(pfMET_T1UESUp ,0, pfMETPhi_T1UESUp, pfMET_T1UESUp); //// raw met
-    uncorrectedMetPlusTau = met_T1UES + raw_TauP4;
-    TLorentzVector corrected_tau = applyTauESCorrections(raw_TauP4, TauIndex, 0);
-    met_T1UES = uncorrectedMetPlusTau - corrected_tau;
-    met_T1UES = MetRecoilCorrections(EleIndex, TauIndex, met_T1UES);
+/*   if(unc_shift=="up"){ */
+/*     met_T1UES.SetPtEtaPhiE(pfMET_T1UESUp ,0, pfMETPhi_T1UESUp, pfMET_T1UESUp); //// raw met */
+/*     uncorrectedMetPlusTau = met_T1UES + raw_TauP4; */
+/*     TLorentzVector corrected_tau = applyTauESCorrections(raw_TauP4, TauIndex, 0); */
+/*     met_T1UES = uncorrectedMetPlusTau - corrected_tau; */
+/*     met_T1UES = MetRecoilCorrections(EleIndex, TauIndex, met_T1UES); */
     
-    double up_percent = abs(met_T1UES.Pt() - nominal_met.Pt())/nominal_met.Pt();
-    if (up_percent>0.2) { up_percent= 0.2; met_T1UES = nominal_met * 1.2;}
-    //cout<<"up_percent          "<< up_percent <<endl;   
-    new_metP4 = met_T1UES;
-  }
-  else if(unc_shift=="down")
-    {
-      met_T1UES.SetPtEtaPhiE(pfMET_T1UESDo ,0, pfMETPhi_T1UESDo, pfMET_T1UESDo); //// raw met
-      uncorrectedMetPlusTau = met_T1UES + raw_TauP4;
-      TLorentzVector corrected_tau = applyTauESCorrections(raw_TauP4, TauIndex, 0);
-      met_T1UES = uncorrectedMetPlusTau - corrected_tau;
-      met_T1UES = MetRecoilCorrections(EleIndex, TauIndex, met_T1UES);
+/*     double up_percent = abs(met_T1UES.Pt() - nominal_met.Pt())/nominal_met.Pt(); */
+/*     if (up_percent>0.2) { up_percent= 0.2; met_T1UES = nominal_met * 1.2;} */
+/*     //cout<<"up_percent          "<< up_percent <<endl;    */
+/*     new_metP4 = met_T1UES; */
+/*   } */
+/*   else if(unc_shift=="down") */
+/*     { */
+/*       met_T1UES.SetPtEtaPhiE(pfMET_T1UESDo ,0, pfMETPhi_T1UESDo, pfMET_T1UESDo); //// raw met */
+/*       uncorrectedMetPlusTau = met_T1UES + raw_TauP4; */
+/*       TLorentzVector corrected_tau = applyTauESCorrections(raw_TauP4, TauIndex, 0); */
+/*       met_T1UES = uncorrectedMetPlusTau - corrected_tau; */
+/*       met_T1UES = MetRecoilCorrections(EleIndex, TauIndex, met_T1UES); */
 
-      double dn_percent = abs(met_T1UES.Pt() - nominal_met.Pt())/nominal_met.Pt();
-      if (dn_percent>0.2) {dn_percent= 0.2;  met_T1UES = nominal_met * 0.8;}
-      new_metP4 = met_T1UES; 
-      //cout<<"                                dn_percent "<< dn_percent <<endl;
-    }
+/*       double dn_percent = abs(met_T1UES.Pt() - nominal_met.Pt())/nominal_met.Pt(); */
+/*       if (dn_percent>0.2) {dn_percent= 0.2;  met_T1UES = nominal_met * 0.8;} */
+/*       new_metP4 = met_T1UES;  */
+/*       //cout<<"                                dn_percent "<< dn_percent <<endl; */
+/*     } */
+/*   else  */
+/*     new_metP4 = nominal_met; */
+/*   return new_metP4; */
+/* } */
+
+TLorentzVector etau_analyzer::metClusteredUnc(TLorentzVector nominal_met ){
+
+  TLorentzVector met_T1UES;
+
+  /// get percent change
+  double up_percent = abs(pfMET_T1UESUp - pfMET) / pfMET ;
+  double dn_percent = abs(pfMET_T1UESDo - pfMET) / pfMET ;
+  double avg_change = (up_percent + dn_percent) / 2;
+  if (unc_shift=="up")
+    met_T1UES = nominal_met * (1 + avg_change);
+  else if (unc_shift=="down")
+    met_T1UES = nominal_met * (1 - avg_change);
   else 
-    new_metP4 = nominal_met;
-  return new_metP4;
+    met_T1UES = nominal_met;
+
+  return met_T1UES;
 }

@@ -20,12 +20,6 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 
   for (int i = 0; i < nJet; i++)
     jetPt->at(i) = orginal_jetPt[i];
-  if(shift ==0 )
-    {
-      plotFill("pfmet_0", pfMET , 20, 0, 200,  event_weight);
-      plotFill("pfmetJESup_0", pfMET_T1JESUp , 20, 0, 200,  event_weight);
-      plotFill("pfmetJESdo_0", pfMET_T1JESDo , 20, 0, 200,  event_weight);
-    }  
 
   if (uncObject == "electronES"){
     /// apply +sigma shift to electron pt, everything else default
@@ -271,12 +265,6 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 	  make_met_plot = true;
 	  setMyEleTau(eleCand[0], tauCand[0], metP4, shift);
 	  make_met_plot = false;
-	  if(shift ==0 )
-	    {
-	      plotFill("pfmet_1", pfMET , 20, 0, 200,  event_weight);
-	      plotFill("pfmetJESup_1", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-	      plotFill("pfmetJESdo_1", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-	    }
 
 
 	  // make_met_shapes_plots("1", event_weight);
@@ -297,12 +285,7 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 		      nGoodMuTauPassed+=event_weight;
 			       
 		      if(debug)cout<<"this worked Line 538"<<endl;
-		      if(shift ==0 )
-			{
-			  plotFill("pfmet_2", pfMET , 20, 0, 200,  event_weight);
-			  plotFill("pfmetJESup_2", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-			  plotFill("pfmetJESdo_2", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-			}
+
 		      //makeTestPlot("e", 0,0,0,event_weight);
 		      /////////////
 		      /* stage = "2"; */
@@ -328,12 +311,7 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 			  if(debug)cout<<__LINE__<<" sf : "<< applySf <<endl;
 			  event_weight = event_weight * applySf;
 			  //makeTestPlot("f", 0,0,0,event_weight);
-			  if(shift ==0 )
-			    {
-			      plotFill("pfmet_3", pfMET , 20, 0, 200,  event_weight);
-			      plotFill("pfmetJESup_3", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-			      plotFill("pfmetJESdo_3", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-			    }
+
 			  // make_met_shapes_plots("3", event_weight);
 			  ////////////////
 			  /* stage = "3"; */
@@ -350,12 +328,7 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 				  nPassedBjetVeto+=event_weight;
 				  //makeTestPlot("h", 0,0,0,event_weight);
 				  //if(tau_DecayMode->at(TauIndex)==5 || tau_DecayMode->at(TauIndex)==6) continue;
-				  if(shift ==0 )
-				    {
-				      plotFill("pfmet_4", pfMET , 20, 0, 200,  event_weight);
-				      plotFill("pfmetJESup_4", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-				      plotFill("pfmetJESdo_4", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-				    }
+
 				  // make_met_shapes_plots("4", event_weight);
 				  ///////////////////
 				  /* stage = "4"; */
@@ -378,12 +351,7 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 				      if(shift ==0 ) fillHist("5", EleIndex, TauIndex, false, event_weight);
 				      else           fillUncPlots("5", EleIndex, TauIndex, false, event_weight, shift);
 				      // make_met_shapes_plots("5", event_weight);
-				       if(shift ==0 )
-					{
-					  plotFill("pfmet_5", pfMET , 20, 0, 200,  event_weight);
-					  plotFill("pfmetJESup_5", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-					  plotFill("pfmetJESdo_5", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-					}
+
 				      double mT_eleMet = TMass_F( my_eleP4.Pt(), my_eleP4.Phi(),
 								  my_metP4.Pt(), my_metP4.Phi() );
 				      if( mT_eleMet < 50 )
@@ -403,12 +371,6 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 					      if(my_metP4.Pt() > 105)
 						{
 						  ////printtabSeparated("check pts before ", my_eleP4.Pt(), my_tauP4.Pt(), my_metP4.Pt());
-						  if(shift ==0 )
-						    {
-						      plotFill("pfmet_9", pfMET , 20, 0, 200,  event_weight);
-						      plotFill("pfmetJESup_9", max(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-						      plotFill("pfmetJESdo_9", min(pfMET_T1JESUp, pfMET_T1JESDo) , 20, 0, 200,  event_weight);
-						    }
 						  /* if(selected_systematic == "nominal") */
 						  /*   make_met_plots("a9"); */
 							  

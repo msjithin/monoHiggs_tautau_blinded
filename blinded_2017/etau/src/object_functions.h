@@ -1345,10 +1345,15 @@ void etau_analyzer::dyShape( string histNumber , int eleIndex, int tauIndex, boo
   if(selected_systematic!="dyShape")
     return;
   double zptweight = zptmass_weight;
-  double weight_up = (zptweight+0.10*abs(zptweight-1));
-  double weight_dn = (zptweight-0.10*abs(zptweight-1));
-  /* double weight_up = zptweight * 1.1; */
-  /* double weight_dn = zptweight * 0.9; */
+  /* double weight_up = (zptweight+0.10*abs(zptweight-1))/zptmass_weight; */
+  /* double weight_dn = (zptweight-0.10*abs(zptweight-1))/zptmass_weight; */
+  double w_up = (1.1*zptweight - 0.1)/zptmass_weight;
+  double w_dn = (0.9*zptweight + 0.1)/zptmass_weight;
+  //printTabSeparated(w_up,  zptweight, w_dn);
+  double weight_up = max(w_up, w_dn);
+  double weight_dn = min(w_up, w_dn);
+  //printTabSeparated(weight_up,  zptweight, weight_dn);
+
   /* if(previous_event_number != current_event_number){ */
     
   /*   printTabSeparated("-------------event:",current_event_number,"----------------------------------"); */
@@ -1386,7 +1391,7 @@ void etau_analyzer::prefiringUnc(string histNumber , int eleIndex, int tauIndex,
 {
   if(selected_systematic!="prefiringUnc")
     return;
-
+  //cout<<("_CMS_Prefiring_up filling")<<endl;
   /////// prefiring unc
   if (unc_shift == "up")
     fillHist(histNumber+"_CMS_Prefiring_up", EleIndex, TauIndex, true, event_weight*prefiringweightup/prefiringweight);

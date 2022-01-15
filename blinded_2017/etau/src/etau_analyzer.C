@@ -249,38 +249,51 @@ void etau_analyzer::Loop(Long64_t maxEvents, int reportEvery, string SampleName)
 	  selections(event_weight,  -1, "jetFakes");
 	  if(is_MC){
 	    // /// UP 
-	    selections(event_weight,  1, "electronES"); // this is for Up
-	    selections(event_weight,  1, "tauES");
-	    selections(event_weight,  1, "JES");
-	    selections(event_weight,  1, "JER");
-	    selections(event_weight,  1, "metresponse");
-	    selections(event_weight,  1, "metresolution");
-	    selections(event_weight,  1, "metunclustered");
+	    string shape_names[14] = {"electronES", "tauES", 
+				    "JES","JER", 
+				    "metresponse", "metresolution",  "metunclustered", 
+				    "tauIDunc", "tauTRGunc", "leptonTRGunc", 
+				    "prefiringUnc", "electronMissID", 
+				    "dyShape", "ttbarShape"};
+	    for (int i = 0; i < 14 ; i++ ){
+	      // if (shape_names[i] != "metunclustered")
+	      // 	continue;     
+	      // cout<<"shape name = "<<shape_names[i]<<endl;
+	      selections(event_weight,  1, shape_names[i]);
+	      selections(event_weight,  -1, shape_names[i]);
+	    }
+	    // selections(event_weight,  1, "electronES"); // this is for Up
+	    // selections(event_weight,  1, "tauES");
+	    // selections(event_weight,  1, "JES");
+	    // selections(event_weight,  1, "JER");
+	    // selections(event_weight,  1, "metresponse");
+	    // selections(event_weight,  1, "metresolution");
+	    // selections(event_weight,  1, "metunclustered");
 	    
-	    selections(event_weight,  1, "tauIDunc");
-	    selections(event_weight,  1, "tauTRGunc");
-	    selections(event_weight,  1, "leptonTRGunc");
-	    selections(event_weight,  1, "prefiringUnc");
-	    selections(event_weight,  1, "electronMissID");
-	    selections(event_weight,  1, "dyShape");
-	    selections(event_weight,  1, "ttbarShape");
-	    //if(check_unc)cout<<"Preparing DOWN shapes"<<endl;
-	    /// Down
-	    selections(event_weight,  -1, "electronES"); // this is for down
-	    selections(event_weight,  -1, "tauES");
-	    selections(event_weight,  -1, "JES");
-	    selections(event_weight,  -1, "JER");
-	    selections(event_weight,  -1, "metresponse");
-	    selections(event_weight,  -1, "metresolution");
-	    selections(event_weight,  -1, "metunclustered");
+	    // selections(event_weight,  1, "tauIDunc");
+	    // selections(event_weight,  1, "tauTRGunc");
+	    // selections(event_weight,  1, "leptonTRGunc");
+	    // selections(event_weight,  1, "prefiringUnc");
+	    // selections(event_weight,  1, "electronMissID");
+	    // selections(event_weight,  1, "dyShape");
+	    // selections(event_weight,  1, "ttbarShape");
+	    // //if(check_unc)cout<<"Preparing DOWN shapes"<<endl;
+	    // /// Down
+	    // selections(event_weight,  -1, "electronES"); // this is for down
+	    // selections(event_weight,  -1, "tauES");
+	    // selections(event_weight,  -1, "JES");
+	    // selections(event_weight,  -1, "JER");
+	    // selections(event_weight,  -1, "metresponse");
+	    // selections(event_weight,  -1, "metresolution");
+	    // selections(event_weight,  -1, "metunclustered");
 
-	    selections(event_weight,  -1, "tauIDunc");
-	    selections(event_weight,  -1, "tauTRGunc");
-	    selections(event_weight,  -1, "leptonTRGunc");
-	    selections(event_weight,  -1, "prefiringUnc");
-	    selections(event_weight,  -1, "electronMissID");
-	    selections(event_weight,  -1, "dyShape");
-	    selections(event_weight,  -1, "ttbarShape");
+	    // selections(event_weight,  -1, "tauIDunc");
+	    // selections(event_weight,  -1, "tauTRGunc");
+	    // selections(event_weight,  -1, "leptonTRGunc");
+	    // selections(event_weight,  -1, "prefiringUnc");
+	    // selections(event_weight,  -1, "electronMissID");
+	    // selections(event_weight,  -1, "dyShape");
+	    // selections(event_weight,  -1, "ttbarShape");
 	  }
 	}
 
