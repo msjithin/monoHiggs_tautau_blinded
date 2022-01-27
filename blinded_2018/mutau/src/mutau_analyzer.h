@@ -1022,7 +1022,7 @@ public :
    TLorentzVector applyEleESCorrections(TLorentzVector muP4, int muIndex, int shift);
    TLorentzVector applyTauESCorrections( TLorentzVector tauP4, int tauIndex, int shift);
    TLorentzVector metSysUnc( string uncType, TLorentzVector event_metP4);
-   TLorentzVector metClusteredUnc( );
+   TLorentzVector metClusteredUnc(  TLorentzVector raw_met );
 
    int eventCategory(int muIndex, int tauIndex,  double higgsPt);
    void setMyEleTau(int eleIndex, int tauIndex, TLorentzVector metP4, int shift);
@@ -1041,16 +1041,24 @@ public :
 mutau_analyzer::mutau_analyzer(const char* file1, const char* file2, string isMC, string sampleName)
 {
   TChain *chain = new TChain("eventTree");
-  
+
   TString  FullPathInputFile = file1;
   chain->Add(FullPathInputFile);
   
   std::cout<<"All files added."<<std::endl;
   std::cout<<"Initializing chain."<<std::endl;
   Init(chain, isMC, sampleName);
-  BookHistos(file1, file2);
-
+  //BookHistos(file1, file2);
   //inspected_events->Write();
+  TFile *file_in =TFile::Open(FullPathInputFile);
+  //////// create and open output file
+  fileName = new TFile(file2, "RECREATE");  
+  fileName->cd();
+  h_nEvents = (TH1F*)((TH1F*)file_in->Get("nEvents"))->Clone(TString("nEvents"));
+  file_in->Close();
+  /* fileName->cd(); */
+  /* h_nEvents = (TH1F*)((TH1F*)file_in->Get("nEvents"))->Clone(TString("nEvents")); */
+  
 }
 
 
@@ -1918,7 +1926,7 @@ void mutau_analyzer::setMyEleTau(int muIndex, int tauIndex, TLorentzVector metP4
   
   TLorentzVector uncorrected_met; TLorentzVector uncorrectedMetPlusTau;
   TLorentzVector corrected_met;
-  uncorrected_met = metP4;
+  uncorrected_met.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
   uncorrectedMetPlusTau=uncorrected_met+my_tauP4;
   TLorentzVector raw_tau = applyTauESCorrections(my_tauP4, TauIndex, 0);
   if(is_MC){
@@ -1926,24 +1934,37 @@ void mutau_analyzer::setMyEleTau(int muIndex, int tauIndex, TLorentzVector metP4
   }
   
   corrected_met = uncorrectedMetPlusTau - raw_tau;
-  if (selected_systematic == "metresolution" && is_MC)
-    my_metP4= metSysUnc("resolution", corrected_met);
-  else if (selected_systematic == "metresponse" && is_MC)
-    my_metP4= metSysUnc("response", corrected_met);
-  else if (selected_systematic == "metunclustered" && is_MC)
-    my_metP4= metClusteredUnc();
-  else if(is_MC)
-    my_metP4=MetRecoilCorrections(muIndex, tauIndex, corrected_met);
-  else if(is_MC==false)
+  /* if(is_MC) */
+  /*   my_metP4=MetRecoilCorrections(eleIndex, tauIndex, corrected_met); */
+  /* else */
+  /*   my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET); */
+  if(is_MC){
+    TLorentzVector corrected_met_v2;
+    //corrected_met_v2.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
+    corrected_met_v2 = MetRecoilCorrections(MuIndex, TauIndex, corrected_met);
+    if (selected_systematic == "metresolution" && is_MC)
+      my_metP4= metSysUnc("resolution", corrected_met_v2);
+    else if (selected_systematic == "metresponse" && is_MC)
+      my_metP4= metSysUnc("response", corrected_met_v2);
+    else if (selected_systematic == "metunclustered" && is_MC)
+      my_metP4= metClusteredUnc(corrected_met_v2);
+    else if(is_MC)
+      my_metP4= corrected_met_v2;
+      //my_metP4=MetRecoilCorrections(EleIndex, TauIndex, corrected_met_v2);
+  }
+  else
     my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
+
+  bool hem_veto = true;
+  for(int iJets=0; iJets<my_njets ; iJets++)
+    {
+      if (jetEta->at(iJets)> -3.2 && jetEta->at(iJets)<-1.3
+	  && jetPhi->at(iJets)>-1.57 && jetPhi->at(iJets)<-0.87
+	  )
+	hem_veto = false;
+    }
   
-  /* cout<<"Final in setmyle event "<<eventNumber<<"  unc_shift="<<unc_shift<<" sys="<<selected_systematic */
-  /*     <<"  met ="<<my_metP4.Pt() */
-  /*     <<"  taupt="<<my_tauP4.Pt() */
-  /*     <<"  elept="<<my_muP4.Pt() */
-  /*     <<"\n"<<endl; */
-  
-  pass_bjet_veto = ((bJet_medium(MuIndex, TauIndex).size()==0) && (bJet_loose(MuIndex, TauIndex).size()<2));
+  pass_bjet_veto = ((bJet_medium(MuIndex, TauIndex).size()==0) && (bJet_loose(MuIndex, TauIndex).size()<2) && hem_veto);
   pass3rdLeptonVeto = ( passDiMuonVeto(MuIndex)==true && eVetoZTTp001dxyz(MuIndex, TauIndex) && mVetoZTTp001dxyz(MuIndex, TauIndex) );
   btag_sf=btag_sf_weight(MuIndex , TauIndex);
 
@@ -1953,6 +1974,8 @@ void mutau_analyzer::setMyEleTau(int muIndex, int tauIndex, TLorentzVector metP4
       ) Ztt_selector=true;
   else Ztt_selector=false;
   
+  if(found_DYjet_sample)
+    zptmass_weight = get_zptmass_weight();
   
   //double kitmusf=IsoMu24or27SF.get_ScaleFactor(my_muP4.Pt(), my_muP4.Eta());
   //cout<<"kitmusf = "<<kitmusf<<endl;

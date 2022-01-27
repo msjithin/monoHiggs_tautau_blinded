@@ -1010,7 +1010,7 @@ public :
    TLorentzVector applyEleESCorrections(TLorentzVector eleP4, int eleIndex, int shift);
    TLorentzVector applyTauESCorrections( TLorentzVector tauP4,int tauIndex, int shift);
    TLorentzVector metSysUnc( string uncType, TLorentzVector event_metP4);
-   TLorentzVector metClusteredUnc( );
+   TLorentzVector metClusteredUnc( TLorentzVector nominal_met);
 
    int eventCategory(int eleIndex, int tauIndex,  double higgsPt);
    void setMyEleTau(int eleIndex, int tauIndex, TLorentzVector event_metP4, int shift);
@@ -1039,7 +1039,13 @@ etau_analyzer::etau_analyzer(const char* file1, const char* file2, string isMC, 
   std::cout<<"All files added."<<std::endl;
   std::cout<<"Initializing chain."<<std::endl;
   Init(chain, isMC, sampleName);
-  BookHistos(file1, file2, year);
+  //BookHistos(file1, file2, year);
+  TFile *file_in =TFile::Open(FullPathInputFile);
+  //////// create and open output file
+  fileName = new TFile(file2, "RECREATE");  
+  fileName->cd();
+  h_nEvents = (TH1F*)((TH1F*)file_in->Get("nEvents"))->Clone(TString("nEvents"));
+  file_in->Close();
 
   //inspected_events->Write();
 }
@@ -1908,7 +1914,7 @@ void etau_analyzer::setMyEleTau(int eleIndex, int tauIndex, TLorentzVector event
   
   TLorentzVector uncorrected_met; TLorentzVector uncorrectedMetPlusTau;
   TLorentzVector corrected_met;
-  //uncorrected_met.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
+  uncorrected_met.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
   uncorrected_met = event_metP4;
   uncorrectedMetPlusTau=uncorrected_met+my_tauP4;
   TLorentzVector raw_tau =  applyTauESCorrections(my_tauP4, TauIndex, 0);
@@ -1921,30 +1927,47 @@ void etau_analyzer::setMyEleTau(int eleIndex, int tauIndex, TLorentzVector event
   /*   my_metP4=MetRecoilCorrections(eleIndex, tauIndex, corrected_met); */
   /* else */
   /*   my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET); */
-
-  if (selected_systematic == "metresolution" && is_MC)
-    my_metP4= metSysUnc("resolution", corrected_met);
-  else if (selected_systematic == "metresponse" && is_MC)
-    my_metP4= metSysUnc("response", corrected_met);
-  else if (selected_systematic == "metunclustered" && is_MC)
-    {
-      my_metP4= metClusteredUnc();
-    }
-  else if(is_MC)
-    my_metP4=MetRecoilCorrections(EleIndex, TauIndex, corrected_met);
-  else if(is_MC==false)
+  if(is_MC){
+    TLorentzVector corrected_met_v2;
+    //corrected_met_v2.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
+    corrected_met_v2 = MetRecoilCorrections(EleIndex, TauIndex, corrected_met);
+    if (selected_systematic == "metresolution" && is_MC)
+      my_metP4= metSysUnc("resolution", corrected_met_v2);
+    else if (selected_systematic == "metresponse" && is_MC)
+      my_metP4= metSysUnc("response", corrected_met_v2);
+    else if (selected_systematic == "metunclustered" && is_MC)
+      my_metP4= metClusteredUnc(corrected_met_v2);
+    else if(is_MC)
+      my_metP4= corrected_met_v2;
+      //my_metP4=MetRecoilCorrections(EleIndex, TauIndex, corrected_met_v2);
+  }
+  else
     my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
+    
+  /* if(is_MC==false) */
+  /*   my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET); */
+  /* else */
+  /*   my_metP4 = corrected_met; */
   
-  
-  pass_bjet_veto = (bJet_medium(EleIndex, TauIndex).size()==0) && (bJet_loose(EleIndex, TauIndex).size()<2);
+  bool hem_veto = true;
+  for(int iJets=0; iJets<my_njets ; iJets++)
+    {
+      if (jetEta->at(iJets)> -3.2 && jetEta->at(iJets)<-1.3
+	  && jetPhi->at(iJets)>-1.57 && jetPhi->at(iJets)<-0.87
+	  )
+	hem_veto = false;
+    }
+
+  pass_bjet_veto = (bJet_medium(EleIndex, TauIndex).size()==0) && (bJet_loose(EleIndex, TauIndex).size()<2 && hem_veto);
   btag_sf=btag_sf_weight(EleIndex , TauIndex);
   
   if( passDiElectronVeto(EleIndex)==true 
-      && eVetoZTTp001dxyz(EleIndex, TauIndex)
+&& eVetoZTTp001dxyz(EleIndex, TauIndex)
       && mVetoZTTp001dxyz(EleIndex, TauIndex)
       ) Ztt_selector=true;
   else Ztt_selector=false;
-
+  if(found_DYjet_sample)
+    zptmass_weight = get_zptmass_weight();
 }
 
 

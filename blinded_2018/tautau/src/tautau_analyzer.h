@@ -205,6 +205,15 @@ public :
    ULong64_t       HLTJet;
    ULong64_t       HLTJetIsPrescaled;
    ULong64_t       HLTJetRejectedByPS;
+   Bool_t          DoubleMediumTau40TightID;
+   Bool_t          DoubleTightTau40;
+   Bool_t          DoubleTightTau35TightID;
+   Bool_t          DoubleTightTauHPS40;
+   ULong64_t       HLTTauPath;
+   ULong64_t       HLTTauPathIsPrescaled;
+   ULong64_t       HLTTauPathRejectedByPS;
+   vector<int>     *tau_HLTPath;
+
    Int_t           nPho;
    vector<float>   *phoE;
    vector<float>   *phoEt;
@@ -581,6 +590,16 @@ public :
    TBranch        *b_HLTJet;   //!
    TBranch        *b_HLTJetIsPrescaled;   //!
    TBranch        *b_HLTJetRejectedByPS;   //!
+   TBranch        *b_DoubleMediumTau40TightID;   //!
+   TBranch        *b_DoubleTightTau40;   //!
+   TBranch        *b_DoubleTightTau35TightID;   //!
+   TBranch        *b_DoubleTightTauHPS40;   //!
+   TBranch        *b_HLTTauPath;   //!
+   TBranch        *b_HLTTauPathIsPrescaled;   //!
+   TBranch        *b_HLTTauPathRejectedByPS;   //!
+   TBranch        *b_tau_HLTPath;   //!
+
+
    TBranch        *b_nPho;   //!
    TBranch        *b_phoE;   //!
    TBranch        *b_phoEt;   //!
@@ -1004,7 +1023,7 @@ public :
    TLorentzVector applyTau2ESCorrections( TLorentzVector tauP4, int tauIndex, int shift);
    TLorentzVector applyTauESCorrections( TLorentzVector tauP4, int tauIndex, int shift);
    TLorentzVector metSysUnc( string uncType, TLorentzVector event_metP4);
-   TLorentzVector metClusteredUnc( );
+   TLorentzVector metClusteredUnc( TLorentzVector event_metP4 );
 
    int eventCategory(int eleIndex, int tauIndex,  double higgsPt);
    void setMyEleTau(int tau1Index, int tau2Index, TLorentzVector metP4, int shift);
@@ -1032,9 +1051,15 @@ tautau_analyzer::tautau_analyzer(const char* file1, const char* file2, string is
   std::cout<<"All files added."<<std::endl;
   std::cout<<"Initializing chain."<<std::endl;
   Init(chain, isMC, sampleName);
-  BookHistos(file1, file2);
-
+  //BookHistos(file1, file2);
   //inspected_events->Write();
+  TFile *file_in =TFile::Open(FullPathInputFile);
+  //////// create and open output file
+  fileName = new TFile(file2, "RECREATE");  
+  fileName->cd();
+  h_nEvents = (TH1F*)((TH1F*)file_in->Get("nEvents"))->Clone(TString("nEvents"));
+  file_in->Close();
+
 }
 
 
@@ -1507,6 +1532,16 @@ void tautau_analyzer::Init(TChain *tree, string _isMC_ , string sampleName)
   fChain->SetBranchAddress("HLTJet", &HLTJet, &b_HLTJet);
   fChain->SetBranchAddress("HLTJetIsPrescaled", &HLTJetIsPrescaled, &b_HLTJetIsPrescaled);
   fChain->SetBranchAddress("HLTJetRejectedByPS", &HLTJetRejectedByPS, &b_HLTJetRejectedByPS);
+  fChain->SetBranchAddress("DoubleMediumTau40TightID", &DoubleMediumTau40TightID, &b_DoubleMediumTau40TightID);
+  fChain->SetBranchAddress("DoubleTightTau40", &DoubleTightTau40, &b_DoubleTightTau40);
+  fChain->SetBranchAddress("DoubleTightTau35TightID", &DoubleTightTau35TightID, &b_DoubleTightTau35TightID);
+  fChain->SetBranchAddress("DoubleTightTauHPS40", &DoubleTightTauHPS40, &b_DoubleTightTauHPS40);
+  fChain->SetBranchAddress("HLTTauPath", &HLTTauPath, &b_HLTTauPath);
+  fChain->SetBranchAddress("HLTTauPathIsPrescaled", &HLTTauPathIsPrescaled, &b_HLTTauPathIsPrescaled);
+  fChain->SetBranchAddress("HLTTauPathRejectedByPS", &HLTTauPathRejectedByPS, &b_HLTTauPathRejectedByPS);
+  fChain->SetBranchAddress("tau_HLTPath", &tau_HLTPath, &b_tau_HLTPath);
+
+
   fChain->SetBranchAddress("nPho", &nPho, &b_nPho);
   fChain->SetBranchAddress("phoE", &phoE, &b_phoE);
   fChain->SetBranchAddress("phoEt", &phoEt, &b_phoEt);
@@ -1881,11 +1916,11 @@ Int_t tautau_analyzer::Cut(Long64_t entry)
 }
 void tautau_analyzer::setMyEleTau(int tau1Index, int tau2Index, TLorentzVector metP4, int shift){
   /// first select leading and subleading
-  { Tau1Index=tau1Index; Tau2Index=tau2Index; }
-  /* if (tau_Pt->at(tau1Index) > tau_Pt->at(tau2Index)) */
-  /*   { Tau1Index=tau1Index; Tau2Index=tau2Index; } */
-  /* else */
-  /*   { Tau1Index=tau2Index; Tau2Index=tau1Index; } */
+  //{ Tau1Index=tau1Index; Tau2Index=tau2Index; }
+  if (tau_Pt->at(tau1Index) > tau_Pt->at(tau2Index))
+    { Tau1Index=tau1Index; Tau2Index=tau2Index; }
+  else
+    { Tau1Index=tau2Index; Tau2Index=tau1Index; }
   // set four-momentum
   TLorentzVector tmp_tau1, tmp_tau2;
   tmp_tau1.SetPtEtaPhiE(tau_Pt->at(Tau1Index),tau_Eta->at(Tau1Index)
@@ -1917,40 +1952,39 @@ void tautau_analyzer::setMyEleTau(int tau1Index, int tau2Index, TLorentzVector m
     my_tau1P4 = tmp_tau1;
     my_tau2P4 = tmp_tau2;
   }
-  /* printTabSeparated("entry # : ", eventNumber, " before metcorr" ,"\n", */
-  /* 		    "selected_systematic : ", selected_systematic , "\n", */
-  /* 		    "Shift ", unc_shift, "\n", */
-  /* 		    "tau 1 pt", my_tau1P4.Pt(), */
-  /* 		    "tau 1 eta", my_tau1P4.Eta(), "\n", */
-  /* 		    "tau 2 pt", my_tau2P4.Pt(), */
-  /* 		    "tau 2 eta", my_tau2P4.Eta(), "\n", */
-  /* 		    "MET", metP4.Pt(), "\n" */
-  /* 		    ); */
+
 
   corrected_met = uncorrectedMetPlusTau - raw_tau1 - raw_tau2 ;
-  if (selected_systematic == "metresolution" && is_MC)
-    my_metP4= metSysUnc("resolution", corrected_met);
-  else if (selected_systematic == "metresponse" && is_MC)
-    my_metP4= metSysUnc("response", corrected_met);
-  else if (selected_systematic == "metunclustered" && is_MC)
-    my_metP4= metClusteredUnc();
-  else  if(is_MC)
-    my_metP4=MetRecoilCorrections(Tau1Index, Tau2Index, corrected_met);
+  if(is_MC){
+    TLorentzVector corrected_met_v2;
+    //corrected_met_v2.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
+    corrected_met_v2 = MetRecoilCorrections(Tau1Index, Tau2Index, corrected_met);
+    if (selected_systematic == "metresolution" && is_MC)
+      my_metP4= metSysUnc("resolution", corrected_met_v2);
+    else if (selected_systematic == "metresponse" && is_MC)
+      my_metP4= metSysUnc("response", corrected_met_v2);
+    else if (selected_systematic == "metunclustered" && is_MC)
+      my_metP4= metClusteredUnc(corrected_met_v2);
+    else if(is_MC)
+      my_metP4= corrected_met_v2;
+      //my_metP4=MetRecoilCorrections(EleIndex, TauIndex, corrected_met_v2);
+  }
   else
     my_metP4.SetPtEtaPhiE(pfMET ,0,pfMETPhi,pfMET);
-  
 
-  /* printTabSeparated("entry # : ", eventNumber, " after metcorr", "\n", */
-  /* 		    "selected_systematic : ", selected_systematic , "\n", */
-  /* 		    "Shift ", unc_shift, "\n", */
-  /* 		    "tau 1 pt", my_tau1P4.Pt(), */
-  /* 		    "tau 1 eta", my_tau1P4.Eta(), "\n", */
-  /* 		    "tau 2 pt", my_tau2P4.Pt(), */
-  /* 		    "tau 2 eta", my_tau2P4.Eta(), "\n", */
-  /* 		    "MET", my_metP4.Pt(), "\n" */
-  /* 		    ); */
-  
-  pass_bjet_veto = true;
+  if(found_DYjet_sample)
+    zptmass_weight = get_zptmass_weight();
+
+  bool hem_veto = true;
+  for(int iJets=0; iJets<my_njets ; iJets++)
+    {
+      if (jetEta->at(iJets)> -3.2 && jetEta->at(iJets)<-1.3
+	  && jetPhi->at(iJets)>-1.57 && jetPhi->at(iJets)<-0.87
+	  )
+	hem_veto = false;
+    }
+
+  pass_bjet_veto = (bJet_medium(Tau1Index, Tau2Index).size()==0) && (bJet_loose(Tau1Index, Tau2Index).size()<2 && hem_veto);
   pass3rdLeptonVeto = ( eVetoZTTp001dxyz(Tau1Index, Tau2Index) && mVetoZTTp001dxyz(Tau1Index, Tau2Index) );
   // btag_sf=btag_sf_weight(Tau1Index, Tau2Index);
   printP4values("setting p4");
