@@ -219,7 +219,15 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 						  if(shift ==0 ) fillHist("9_dyll", EleIndex, TauIndex, false, event_weight);
 						  else  	 fillUncPlots("9_dyll", EleIndex, TauIndex, false, event_weight, shift);
 						  //cout<<"Line number "<<__LINE__<<endl;
-	  
+						  ////////// selects events if not vetoed
+						  if(hem_veto()==false)
+						    {
+						      stage = "9b_dyll";
+						      if (unc_shift == "nominal" ) save_nom();
+						      if(shift ==0 ) fillHist("9b_dyll", EleIndex, TauIndex, false, event_weight);
+						      else           fillUncPlots("9b_dyll", EleIndex, TauIndex, false, event_weight, shift);
+						    }
+
 						}
 					    }
 
@@ -349,6 +357,15 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 						  if (unc_shift == "nominal" ) save_nom();
 						  if(shift ==0 ) fillHist("9", EleIndex, TauIndex, false, event_weight);
 						  else           fillUncPlots("9", EleIndex, TauIndex, false, event_weight, shift);
+
+						  ////////// selects events if not vetoed
+						  if(hem_veto()==false)
+						    {
+						      stage = "9b";
+						      if (unc_shift == "nominal" ) save_nom();
+						      if(shift ==0 ) fillHist("9b", EleIndex, TauIndex, false, event_weight);
+						      else           fillUncPlots("9b", EleIndex, TauIndex, false, event_weight, shift);
+						    }
 						}
 					    }
 
@@ -486,6 +503,14 @@ void etau_analyzer::selections(float weight, int shift, string uncObject)
 						{
 						  if(shift ==0 )fillHist("9_fr", EleIndex, TauIndex, true , event_weight);
 						  else          fillUncPlots("9_fr", EleIndex, TauIndex, true, event_weight, shift);
+						  						  ////////// selects events if not vetoed
+						  if(hem_veto()==false)
+						    {
+						      stage = "9b_fr";
+						      if (unc_shift == "nominal" ) save_nom();
+						      if(shift ==0 ) fillHist("9b_fr", EleIndex, TauIndex, false, event_weight);
+						      else           fillUncPlots("9b_fr", EleIndex, TauIndex, false, event_weight, shift);
+						    }
 						}
 					    }
 

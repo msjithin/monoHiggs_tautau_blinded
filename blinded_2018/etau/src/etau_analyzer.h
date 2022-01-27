@@ -1024,6 +1024,7 @@ public :
    double eleMuSF(int genmatch, double taueta);
    void printP4values(string when);
    void make_met_plot(string sys_name, string hnumber, float event_weight);
+   bool hem_veto();
    //class myclass;
 };
 #endif
@@ -1949,16 +1950,7 @@ void etau_analyzer::setMyEleTau(int eleIndex, int tauIndex, TLorentzVector event
   /* else */
   /*   my_metP4 = corrected_met; */
   
-  bool hem_veto = true;
-  for(int iJets=0; iJets<my_njets ; iJets++)
-    {
-      if (jetEta->at(iJets)> -3.2 && jetEta->at(iJets)<-1.3
-	  && jetPhi->at(iJets)>-1.57 && jetPhi->at(iJets)<-0.87
-	  )
-	hem_veto = false;
-    }
-
-  pass_bjet_veto = (bJet_medium(EleIndex, TauIndex).size()==0) && (bJet_loose(EleIndex, TauIndex).size()<2 && hem_veto);
+  pass_bjet_veto = (bJet_medium(EleIndex, TauIndex).size()==0) && (bJet_loose(EleIndex, TauIndex).size()<2 );
   btag_sf=btag_sf_weight(EleIndex , TauIndex);
   
   if( passDiElectronVeto(EleIndex)==true 
@@ -2035,6 +2027,17 @@ void etau_analyzer::make_met_plot(string sys_name, string hnumber, float event_w
   else if (unc_shift == "down" && selected_systematic=="metresolution")
     plotFill("pfmet_resolution_down"+hnumber, my_metP4.Pt() , 20, 0, 200,  event_weight);
   
+}
+bool etau_analyzer::hem_veto(){
+  bool veto_event = false;
+  for(int iJets=0; iJets<my_njets ; iJets++)
+    {
+      if (jetEta->at(iJets)> -3.2 && jetEta->at(iJets)<-1.3
+	  && jetPhi->at(iJets)>-1.57 && jetPhi->at(iJets)<-0.87
+	  )
+	veto_event = true;
+    }
+  return veto_event;
 }
 
 #endif // #ifdef etau_analyzer_cxx
