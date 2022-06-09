@@ -41,18 +41,20 @@ def getHistList_v3(inFile):
         for key, value in mc_dict.items():
             print key, value
             mc_samples = value
-            smallMC = inFile.Get(tdir+'/'+mc_samples[0]+'_'+tdir).Clone()
+            i = 0
+            while i<len(mc_samples):
+                if inFile.Get(tdir+'/'+mc_samples[i]+'_'+tdir):
+                    break
+                i += 1
+            if i==len(mc_samples):
+                continue
+            smallMC = inFile.Get(tdir+'/'+mc_samples[i]+'_'+tdir).Clone()
             smallMC.Reset("ICES")
             for mc in mc_samples:
                 tmppath = tdir+'/'+mc+'_'+tdir
-                #print 'path  =  ', tmppath
-                try:
+                if inFile.Get(tmppath):
                     tmpHist = inFile.Get(tmppath)
-                    #print 'intergal = ', tmpHist.Integral()
-                    smallMC.Add(tmpHist)
-                except:
-                    pass
-            #print 'integral  otherMC', otherMC.Integral()
+                    smallMC.Add(tmpHist)                
             inFile.cd(tdir)
             smallMC.SetName(key+"_"+tdir)
             smallMC.Write()
@@ -77,7 +79,7 @@ if __name__=="__main__":
                     help="name of histogram elePt , tauPt, ..  Default=etau")
     args =  parser.parse_args()
     if args.hist is None:
-        histogram = 'etau'
+        histogram = 'mutau'
     else:
         histogram = args.hist
     print 'histogram = ' , histogram
